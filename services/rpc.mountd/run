@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+
+rpc.mountd --debug all --no-udp --nfs-version 4 --foreground --no-nfs-version 3

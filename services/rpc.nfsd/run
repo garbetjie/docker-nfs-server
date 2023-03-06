@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+rpc.nfsd 8 --debug --nfs-version 4 --no-udp --no-nfs-version 3
+

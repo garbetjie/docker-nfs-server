@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+if [ ! -f /etc/exports ]; then
+  touch /etc/exports
+
+  # Exports have been defined in environment variables.
+  if env | grep -q ^EXPORT_; then
+    env | awk -F= '/^EXPORT_/ { st = index($0, "="); print substr($0, st + 1); }' >> /etc/exports
+  fi
+
+  # Auto-mounting is enabled. So populate the exports file.
+  if [ "$AUTO_MOUNT" = true ]; then
+    writeable="rw"
+    sync="async"
+
+    if [ "$AUTO_MOUNT_READ_ONLY" = true ]; then writeable="ro"; fi
+    if [ "$AUTO_MOUNT_SYNC" ]; then sync="sync"; fi
+
+    echo "\"${AUTO_MOUNT_BASE}\" ${AUTO_MOUNT_CIDR}(${writeable},fsid=0,${sync},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
+
+    find "$AUTO_MOUNT_BASE" -type d -maxdepth 1 -mindepth 1 -print0 | while IFS= read -r -d '' dirname; do
+      echo "\"${dirname}\" ${AUTO_MOUNT_CIDR}(${writeable},fsid=1,${sync},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
+    done
+  fi
+fi
+
+exportfs -d all -ar
